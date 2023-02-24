@@ -1,26 +1,26 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useState } from 'react';
 import { Post } from 'types/blog.type';
 import { useDispatch } from 'react-redux';
 import { addPost } from 'pages/blog/blog.reducer';
+
 export default function CreatePost() {
-  const [formData, setformData] = useState(() => {
-    const initialFormData: Post = {
-      title: '',
-      description: '',
-      featuredImage: '',
-      id: '',
-      publishDate: '',
-      published: false
-    };
-    return initialFormData;
+  const initialFormDataRef = useRef<Post>({
+    title: '',
+    description: '',
+    featuredImage: '',
+    id: '',
+    publishDate: '',
+    published: false
   });
+  const [formData, setformData] = useState(initialFormDataRef.current);
   const dispatch = useDispatch();
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const id = new Date().toISOString();
     const newFormData = { ...formData, id: id };
     dispatch(addPost(newFormData));
+    setformData(initialFormDataRef.current);
   };
   return (
     <form onSubmit={handleSubmit}>
