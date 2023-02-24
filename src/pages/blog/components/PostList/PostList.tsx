@@ -1,7 +1,10 @@
-import React from 'react';
 import PostItem from '../PostItem';
+import { useSelector } from 'react-redux';
+import { RootState } from 'store';
 
 function PostList() {
+  const initialPostList = useSelector((state: RootState) => state.blogReducer.postList);
+  console.log(initialPostList);
   return (
     <div>
       <div className='bg-white py-6 sm:py-8 lg:py-12'>
@@ -13,10 +16,9 @@ function PostList() {
             </p>
           </div>
           <div className='grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-2 xl:grid-cols-2 xl:gap-8'>
-            <PostItem />
-            <PostItem />
-            <PostItem />
-            <PostItem />
+            {initialPostList.map((post) => {
+              return <PostItem post={post} key={post.id} />;
+            })}
           </div>
         </div>
       </div>
