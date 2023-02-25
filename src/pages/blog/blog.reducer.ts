@@ -1,4 +1,4 @@
-import { createAction, createReducer, nanoid } from '@reduxjs/toolkit';
+import { createAction, createReducer, nanoid, PayloadAction } from '@reduxjs/toolkit';
 import { initialPostList } from 'constant/blog.constant';
 import { Post } from 'types/blog.type';
 interface BlogState {
@@ -25,10 +25,10 @@ export const finishEditingPost = createAction<Post>('blogReducer/finishEditingPo
 
 const blogReducer = createReducer(initialState, (builder) => {
   builder
-    .addCase(addPost, (state, action) => {
+    .addCase(addPost, (state, action: PayloadAction<Post>) => {
       state.postList.push(action.payload);
     })
-    .addCase(deletePost, (state, action) => {
+    .addCase(deletePost, (state, action: PayloadAction<string>) => {
       const postList: Post[] = state.postList;
       let count = 0;
       for (const item of postList) {
@@ -39,13 +39,13 @@ const blogReducer = createReducer(initialState, (builder) => {
         count++;
       }
     })
-    .addCase(startEditingPost, (state, action) => {
+    .addCase(startEditingPost, (state, action: PayloadAction<Post>) => {
       state.editingPost = action.payload || null;
     })
-    .addCase(cancelEditingPost, (state, action) => {
+    .addCase(cancelEditingPost, (state) => {
       state.editingPost = null;
     })
-    .addCase(finishEditingPost, (state, action) => {
+    .addCase(finishEditingPost, (state, action: PayloadAction<Post>) => {
       state.postList.some((post, i) => {
         if (post.id === action.payload.id) {
           state.postList[i] = action.payload;
