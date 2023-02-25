@@ -1,4 +1,4 @@
-import Blog from 'pages/blog';
+import Blog from 'pages/newblog';
 
 function App() {
   return (
