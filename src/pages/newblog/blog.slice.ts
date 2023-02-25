@@ -1,5 +1,4 @@
-import { addPost } from 'pages/blog/blog.reducer';
-import { createAction, createReducer, createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit';
 import { initialPostList } from 'constant/blog.constant';
 import { Post } from 'types/blog.type';
 interface BlogState {
