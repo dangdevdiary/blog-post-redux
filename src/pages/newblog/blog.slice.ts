@@ -1,61 +1,82 @@
-import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit';
-import { initialPostList } from 'constant/blog.constant';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Post } from 'types/blog.type';
+import http from 'utils/http';
 interface BlogState {
   postList: Post[];
   editingPost: Post | null;
 }
 const initialState: BlogState = {
-  postList: initialPostList,
+  postList: [],
   editingPost: null
 };
+
+export const fetchPostList = createAsyncThunk('blog/getPostList', async (_, thunkAPI) => {
+  const response = await http.get<Post[]>('/posts', {
+    signal: thunkAPI.signal
+  });
+  return response.data;
+});
+export const createPost = createAsyncThunk('blog/createPost', async (body: Omit<Post, 'id'>, thunkAPI) => {
+  const response = await http.post<Post>('/posts', body, {
+    signal: thunkAPI.signal
+  });
+  return response.data;
+});
+export const updatePost = createAsyncThunk('blog/updatePost', async (body: Post, thunkAPI) => {
+  const response = await http.patch<Post>(`/posts/${body.id}`, body, {
+    signal: thunkAPI.signal
+  });
+  return response.data;
+});
+export const deletePost = createAsyncThunk('blog/deletePost', async (id: string, thunkAPI) => {
+  const response = await http.delete<String>(`/posts/${id}`, {
+    signal: thunkAPI.signal
+  });
+  return response.data;
+});
 
 const blogSlice = createSlice({
   name: 'blog',
   initialState,
   reducers: {
-    addNewPost: {
-      reducer: (state, action: PayloadAction<Post>) => {
-        state.postList.push(action.payload);
-      },
-      prepare: (post: Post) => {
-        return {
-          payload: {
-            ...post,
-            id: nanoid()
-          }
-        };
-      }
-    },
-    deletePost: (state, action: PayloadAction<string>) => {
-      const postList: Post[] = state.postList;
-      let count = 0;
-      for (const item of postList) {
-        if (item.id === action.payload) {
-          postList.splice(count, 1);
-          break;
-        }
-        count++;
-      }
-    },
     startEditingPost: (state, action: PayloadAction<Post>) => {
       state.editingPost = action.payload || null;
     },
     cancelEditingPost: (state) => {
       state.editingPost = null;
-    },
-    finishEditingPost: (state, action: PayloadAction<Post>) => {
-      state.postList.some((post, i) => {
-        if (post.id === action.payload.id) {
-          state.postList[i] = action.payload;
-          return true;
-        } else return false;
-      });
-      state.editingPost = null;
     }
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchPostList.fulfilled, (state, action) => {
+        state.postList = action.payload;
+      })
+      .addCase(createPost.fulfilled, (state, action) => {
+        state.postList.push(action.payload);
+      })
+      .addCase(updatePost.fulfilled, (state, action) => {
+        state.postList.find((post, i) => {
+          if (post.id === action.payload.id) {
+            state.postList[i] = action.payload;
+            return true;
+          } else return false;
+        });
+        state.editingPost = null;
+      })
+      .addCase(deletePost.fulfilled, (state, action) => {
+        const postList: Post[] = state.postList;
+        let count = 0;
+        for (const item of postList) {
+          if (item.id === action.meta.arg) {
+            postList.splice(count, 1);
+            break;
+          }
+          count++;
+        }
+      });
   }
 });
 
-export const { deletePost, startEditingPost, cancelEditingPost, finishEditingPost, addNewPost } = blogSlice.actions;
+export const { startEditingPost, cancelEditingPost } = blogSlice.actions;
 
 export default blogSlice.reducer;

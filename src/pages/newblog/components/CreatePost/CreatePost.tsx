@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import { Post } from 'types/blog.type';
-import { useDispatch, useSelector } from 'react-redux';
-import { addNewPost, cancelEditingPost, finishEditingPost } from 'pages/newblog/blog.slice';
-import { RootState } from 'store';
+import { useSelector } from 'react-redux';
+import { cancelEditingPost, createPost, updatePost } from 'pages/newblog/blog.slice';
+import { RootState, useAppDispatch } from 'store';
 
 export default function CreatePost() {
   const initialFormDataRef = useRef<Post>({
@@ -19,13 +19,13 @@ export default function CreatePost() {
   useEffect(() => {
     setformData(editingPost || initialFormDataRef.current);
   }, [editingPost]);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (editingPost) {
-      dispatch(finishEditingPost(formData));
+      dispatch(updatePost(formData));
     } else {
-      dispatch(addNewPost(formData));
+      dispatch(createPost(formData));
     }
     setformData(initialFormDataRef.current);
   };

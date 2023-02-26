@@ -1,12 +1,20 @@
 import PostItem from '../PostItem';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from 'store';
-import { deletePost, startEditingPost } from 'pages/newblog/blog.slice';
+import { useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from 'store';
+import { deletePost, fetchPostList, startEditingPost } from 'pages/newblog/blog.slice';
 import { Post } from 'types/blog.type';
+import { useEffect } from 'react';
 
 function PostList() {
   const initialPostList = useSelector((state: RootState) => state.blogReducer.postList);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    const res = dispatch(fetchPostList());
+    return () => {
+      res.abort();
+    };
+  }, [dispatch]);
+
   const handleDelete = (id: string) => {
     dispatch(deletePost(id));
   };
