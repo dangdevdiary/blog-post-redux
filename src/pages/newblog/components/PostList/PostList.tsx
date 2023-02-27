@@ -4,9 +4,11 @@ import { RootState, useAppDispatch } from 'store';
 import { deletePost, fetchPostList, startEditingPost } from 'pages/newblog/blog.slice';
 import { Post } from 'types/blog.type';
 import { useEffect } from 'react';
+import Skeleton from '../skeletons';
 
 function PostList() {
   const initialPostList = useSelector((state: RootState) => state.blogReducer.postList);
+  const loading = useSelector((state: RootState) => state.blogReducer.loading);
   const dispatch = useAppDispatch();
   useEffect(() => {
     const res = dispatch(fetchPostList());
@@ -32,9 +34,16 @@ function PostList() {
             </p>
           </div>
           <div className='grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-2 xl:grid-cols-2 xl:gap-8'>
-            {initialPostList.map((post) => {
-              return <PostItem post={post} key={post.id} handleDelete={handleDelete} handleEditing={handleEditing} />;
-            })}
+            {loading && (
+              <>
+                <Skeleton />
+                <Skeleton />
+              </>
+            )}
+            {!loading &&
+              initialPostList.map((post) => {
+                return <PostItem post={post} key={post.id} handleDelete={handleDelete} handleEditing={handleEditing} />;
+              })}
           </div>
         </div>
       </div>
