@@ -21,16 +21,30 @@ export const fetchPostList = createAsyncThunk('blog/getPostList', async (_, thun
   return response.data;
 });
 export const createPost = createAsyncThunk('blog/createPost', async (body: Omit<Post, 'id'>, thunkAPI) => {
-  const response = await http.post<Post>('/posts', body, {
-    signal: thunkAPI.signal
-  });
-  return response.data;
+  try {
+    const response = await http.post<Post>('/posts', body, {
+      signal: thunkAPI.signal
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.name === 'AxiosError' && error.response.status === 422) {
+      return thunkAPI.rejectWithValue(error.response.data);
+    }
+    throw error;
+  }
 });
 export const updatePost = createAsyncThunk('blog/updatePost', async (body: Post, thunkAPI) => {
-  const response = await http.patch<Post>(`/posts/${body.id}`, body, {
-    signal: thunkAPI.signal
-  });
-  return response.data;
+  try {
+    const response = await http.patch<Post>(`/posts/${body.id}`, body, {
+      signal: thunkAPI.signal
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.name === 'AxiosError' && error.response.status === 422) {
+      return thunkAPI.rejectWithValue(error.response.data);
+    }
+    throw error;
+  }
 });
 export const deletePost = createAsyncThunk('blog/deletePost', async (id: string, thunkAPI) => {
   const response = await http.delete<String>(`/posts/${id}`, {
@@ -91,10 +105,12 @@ const blogSlice = createSlice({
         }
       )
       .addMatcher<RejectedAction | FulfilledAction>(
-        (action) => action.type.endsWith('/fulfilled') || action.type.endsWith('/fulfilled'),
+        (action) => action.type.endsWith('/rejected') || action.type.endsWith('/fulfilled'),
         (state, action) => {
-          if (action.meta.requestId === state.currentRequestId) state.loading = false;
-          state.currentRequestId = undefined;
+          if (action.meta.requestId === state.currentRequestId && state.loading === true) {
+            state.loading = false;
+            state.currentRequestId = undefined;
+          }
         }
       );
   }

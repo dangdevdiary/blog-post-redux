@@ -5,6 +5,10 @@ import { useSelector } from 'react-redux';
 import { cancelEditingPost, createPost, updatePost } from 'pages/newblog/blog.slice';
 import { RootState, useAppDispatch } from 'store';
 
+interface errForm {
+  publishDate: string;
+}
+
 export default function CreatePost() {
   const initialFormDataRef = useRef<Post>({
     title: '',
@@ -16,6 +20,7 @@ export default function CreatePost() {
   });
   const editingPost = useSelector((state: RootState) => state.blogReducer.editingPost);
   const [formData, setformData] = useState<Post>(initialFormDataRef.current);
+  const [errForm, setErrForm] = useState<null | errForm>(null);
   useEffect(() => {
     setformData(editingPost || initialFormDataRef.current);
   }, [editingPost]);
@@ -23,11 +28,30 @@ export default function CreatePost() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (editingPost) {
-      dispatch(updatePost(formData));
+      dispatch(updatePost(formData))
+        .unwrap()
+        .then(() => {
+          setformData(initialFormDataRef.current);
+          if (errForm) {
+            setErrForm(null);
+          }
+        })
+        .catch((err) => {
+          setErrForm({ ...errForm, publishDate: err.err });
+        });
     } else {
-      dispatch(createPost(formData));
+      dispatch(createPost(formData))
+        .unwrap()
+        .then(() => {
+          setformData(initialFormDataRef.current);
+          if (errForm) {
+            setErrForm(null);
+          }
+        })
+        .catch((err) => {
+          setErrForm({ ...errForm, publishDate: err.err });
+        });
     }
-    setformData(initialFormDataRef.current);
   };
   const hanleCancel = () => {
     dispatch(cancelEditingPost());
@@ -79,18 +103,28 @@ export default function CreatePost() {
         </div>
       </div>
       <div className='mb-6'>
-        <label htmlFor='publishDate' className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'>
+        <label
+          htmlFor='publishDate'
+          className={`mb-2 block text-sm font-medium ${
+            errForm?.publishDate ? 'text-red-700 dark:text-red-500' : 'text-gray-900 dark:text-gray-300'
+          }`}
+        >
           Publish Date
         </label>
         <input
           type='date'
           id='publishDate'
           required
-          className='block w-56 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-blue-500'
+          className={`block w-56 rounded-lg border  p-2.5 text-sm focus:outline-none ${
+            errForm?.publishDate
+              ? 'border-red-300 bg-red-50 text-red-700 focus:border-red-500 focus:ring-red-500'
+              : 'border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-blue-500'
+          }`}
           placeholder='Title'
           value={formData.publishDate}
           onChange={(e) => setformData((prev) => ({ ...prev, publishDate: e.target.value }))}
         />
+        <p className='font-semibold text-red-600'>{errForm?.publishDate}</p>
       </div>
       <div className='mb-6 flex items-center'>
         <input
